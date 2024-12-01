@@ -2,16 +2,29 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 from django.http import JsonResponse
 
-# Load the tokenizer and model
-# Use a smaller model or quantized version if necessary
-model_name = "mistralai/Mistral-1.3B"  # Smaller model for compatibility with your system
-tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
-model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16)
-
-# Move model to CPU
-model = model.to("cpu")
+# Replace with a public model name
+model_name = "gpt2"  # Use a publicly available model
+try:
+    # Load the tokenizer and model
+    tokenizer = AutoTokenizer.from_pretrained(model_name, use_fast=False)
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        torch_dtype=torch.float32  # Optimized for CPU
+    )
+    model = model.to("cpu")  # Move model to CPU
+except Exception as e:
+    raise RuntimeError(f"Failed to load the model or tokenizer: {e}")
 
 def get_response(request):
+    """
+    Handles chatbot response generation.
+
+    Args:
+        request: Django HTTP request with a 'message' parameter.
+
+    Returns:
+        JsonResponse: Chatbot's response or error message.
+    """
     if request.method == "GET":
         user_message = request.GET.get('message', '')
 
@@ -25,10 +38,10 @@ def get_response(request):
             # Generate a response
             outputs = model.generate(
                 inputs,
-                max_length=200,
+                max_length=150,  # Adjust for faster responses
                 num_return_sequences=1,
-                temperature=0.7,
-                top_p=0.95,
+                temperature=0.7,  # Controls randomness of responses
+                top_p=0.95,  # Nucleus sampling
                 pad_token_id=tokenizer.eos_token_id,
             )
 
