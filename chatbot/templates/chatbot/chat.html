@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        /* General styling */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        /* Chat window styling */
+        #chatWindow {
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: #fff;
+            padding: 15px;
+            width: 90%;
+            max-width: 600px;
+            height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        #chatWindow p {
+            margin: 5px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        /* User message styling */
+        #chatWindow p:nth-child(odd) {
+            background-color: #d1e7dd;
+            text-align: right;
+        }
+
+        /* Bot message styling */
+        #chatWindow p:nth-child(even) {
+            background-color: #f8d7da;
+            text-align: left;
+        }
+
+        /* Input and button styling */
+        .chat-controls {
+            display: flex;
+            justify-content: center;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            max-width: calc(100% - 100px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px 0 0 5px;
+            outline: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            cursor: pointer;
+            border-radius: 0 5px 5px 0;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            #chatWindow {
+                height: 300px;
+            }
+
+            input[type="text"] {
+                max-width: calc(100% - 80px);
+            }
+
+            button {
+                padding: 10px;
+            }
+        }
+    </style>
+    <script>
+        async function sendMessage() {
+            const userInput = document.getElementById('userInput').value;
+            const chatWindow = document.getElementById('chatWindow');
+
+            if (!userInput.trim()) {
+                alert("Please enter a message!");
+                return;
+            }
+
+            // Append user message
+            const userMessage = document.createElement('p');
+            userMessage.textContent = `You: ${userInput}`;
+            chatWindow.appendChild(userMessage);
+
+            // Scroll to the bottom of the chat window
+            chatWindow.scrollTop = chatWindow.scrollHeight;
+
+            // Fetch bot response
+            try {
+                const response = await fetch(`/get_response/?message=${encodeURIComponent(userInput)}`);
+                const data = await response.json();
+
+                // Append bot response
+                const botMessage = document.createElement('p');
+                botMessage.textContent = `Bot: ${data.response}`;
+                chatWindow.appendChild(botMessage);
+
+                // Scroll to the bottom of the chat window
+                chatWindow.scrollTop = chatWindow.scrollHeight;
+            } catch (error) {
+                const errorMessage = document.createElement('p');
+                errorMessage.textContent = "Bot: Sorry, I couldn't process your request.";
+                errorMessage.style.color = "red";
+                chatWindow.appendChild(errorMessage);
+            }
+
+            // Clear input field
+            document.getElementById('userInput').value = '';
+        }
+    </script>
+</head>
+<body>
+    <h1>Chatbot</h1>
+    <div id="chatWindow">
+        <!-- Chat messages will appear here -->
+    </div>
+    <div class="chat-controls">
+        <input type="text" id="userInput" placeholder="Type your message" onkeypress="if(event.key === 'Enter') sendMessage()">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</body>
+</html>
